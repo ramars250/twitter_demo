@@ -43,57 +43,60 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authControllerProvider);
     return Scaffold(
       appBar: appbar,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                // textfield 1
-                AuthField(
-                  controller: emailController,
-                  hintText: "Email",
-                ),
-                const SizedBox(height: 25),
-                // textfield 2
-                AuthField(
-                  controller: passwordController,
-                  hintText: "Password",
-                ),
-                const SizedBox(height: 40),
-                // button
-                Align(
-                  alignment: Alignment.topRight,
-                  child: RoundedSmallButton(
-                    onTap: onSignUp,
-                    label: '註冊',
+      body: isLoading
+          ? const Loader()
+          : Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      // textfield 1
+                      AuthField(
+                        controller: emailController,
+                        hintText: "Email",
+                      ),
+                      const SizedBox(height: 25),
+                      // textfield 2
+                      AuthField(
+                        controller: passwordController,
+                        hintText: "Password",
+                      ),
+                      const SizedBox(height: 40),
+                      // button
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: RoundedSmallButton(
+                          onTap: onSignUp,
+                          label: '註冊',
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      // textspan
+                      RichText(
+                        text: TextSpan(
+                            text: "註冊帳號?",
+                            style: const TextStyle(fontSize: 16),
+                            children: [
+                              TextSpan(
+                                text: ' 登入',
+                                style: const TextStyle(
+                                    color: Pallete.blueColor, fontSize: 16),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Navigator.push(context, LoginView.route());
+                                  },
+                              ),
+                            ]),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 40),
-                // textspan
-                RichText(
-                  text: TextSpan(
-                      text: "註冊帳號?",
-                      style: const TextStyle(fontSize: 16),
-                      children: [
-                        TextSpan(
-                          text: ' 登入',
-                          style: const TextStyle(
-                              color: Pallete.blueColor, fontSize: 16),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.push(context, LoginView.route());
-                            },
-                        ),
-                      ]),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

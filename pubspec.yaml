@@ -33,6 +33,7 @@ dependencies:
   flutter_riverpod:
   fpdart:
   appwrite:
+  image_picker:
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -20,6 +20,11 @@ abstract class IAuthAPI {
     required String email,
     required String password,
   });
+
+  FutureEither<model.Session> login({
+    required String email,
+    required String password,
+  });
 }
 
 class AuthAPI implements IAuthAPI {
@@ -29,6 +34,19 @@ class AuthAPI implements IAuthAPI {
   AuthAPI({required Account account}) : _account = account;
 
   @override
+  Future<model.Account?> currentUserAccount() async {
+    try {
+      return await _account.get();
+    } on AppwriteException {
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  //FutureEither一個自定義的泛型類，可以在一個異步函數中返回一個成功或一個失敗的訊息
+  //可以通過left及right分別返回失敗和成功的結果
   FutureEither<model.Account> signUp({
     required String email,
     required String password,
@@ -41,6 +59,29 @@ class AuthAPI implements IAuthAPI {
       );
       return right(account);
       //獲取額外的異常報告
+    } on AppwriteException catch (e, stackTrace) {
+      return left(
+        Failuer(e.message ?? 'Some unexpected error occurred', stackTrace),
+      );
+    } catch (e, stackTrace) {
+      return left(
+        Failuer(e.toString(), stackTrace),
+      );
+    }
+  }
+
+  @override
+  FutureEither<model.Session> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      //利用appwrite的createEmailSession對email及password進行驗證
+      final session = await _account.createEmailSession(
+        email: email,
+        password: password,
+      );
+      return right(session);
     } on AppwriteException catch (e, stackTrace) {
       return left(
         Failuer(e.message ?? 'Some unexpected error occurred', stackTrace),
