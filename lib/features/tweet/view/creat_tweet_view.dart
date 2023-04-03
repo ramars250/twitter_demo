@@ -1,11 +1,13 @@
-import 'dart:js';
-
+import 'dart:io';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:twitter_demo/common/common.dart';
 import 'package:twitter_demo/constants/constants.dart';
+import 'package:twitter_demo/core/core.dart';
 import 'package:twitter_demo/features/auth/controller/auth_controller.dart';
+import 'package:twitter_demo/features/tweet/controller/tweet_controller.dart';
 import 'package:twitter_demo/theme/theme.dart';
 
 class CreateTweetScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,7 @@ class CreateTweetScreen extends ConsumerStatefulWidget {
 
 class _CreateTweetViewState extends ConsumerState<CreateTweetScreen> {
   final tweetTextController = TextEditingController();
+  List<File> images = [];
 
   @override
   void dispose() {
@@ -27,9 +30,24 @@ class _CreateTweetViewState extends ConsumerState<CreateTweetScreen> {
     tweetTextController.dispose();
   }
 
+  void shareTweet() {
+    ref.read(tweetControllerProvider.notifier).shareTweet(
+          images: images,
+          text: tweetTextController.text,
+          context: context,
+        );
+  }
+
+  void onPickImages() async {
+    images = await pickImages();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserDetailProvider).value;
+    final isLoading = ref.watch(tweetControllerProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -43,14 +61,14 @@ class _CreateTweetViewState extends ConsumerState<CreateTweetScreen> {
         ),
         actions: [
           RoundedSmallButton(
-            onTap: () {},
+            onTap: shareTweet,
             label: 'Tweet',
             backgroundColor: Pallete.blueColor,
             textColor: Pallete.whiteColor,
           )
         ],
       ),
-      body: currentUser == null
+      body: isLoading || currentUser == null
           ? const Loader()
           : SafeArea(
               child: SingleChildScrollView(
@@ -82,7 +100,23 @@ class _CreateTweetViewState extends ConsumerState<CreateTweetScreen> {
                           ),
                         ),
                       ],
-                    )
+                    ),
+                    if (images.isNotEmpty)
+                      CarouselSlider(
+                        items: images.map(
+                          (file) {
+                            return Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: Image.file(file),
+                            );
+                          },
+                        ).toList(),
+                        options: CarouselOptions(
+                          height: 400,
+                          enableInfiniteScroll: false,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -104,7 +138,10 @@ class _CreateTweetViewState extends ConsumerState<CreateTweetScreen> {
                 left: 15,
                 right: 15,
               ),
-              child: SvgPicture.asset(AssetsConstants.galleryIcon),
+              child: GestureDetector(
+                onTap: onPickImages,
+                child: SvgPicture.asset(AssetsConstants.galleryIcon),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0).copyWith(
